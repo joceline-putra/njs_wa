@@ -17,7 +17,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 // initial instance
 const PORT = process.env.PORT || 3030;
 const app = express();
-// const server = http.createServer(app);s
+const server = http.createServer(app);
 // const io = socketIO(server);
 // const client = new Client({
 //   restartOnAuthFail: true,
