@@ -58,13 +58,12 @@ app.get('/', (req, res) => {
 });
 
 // initialize whatsapp and the example event
-/*
 client.initialize();
 client.on('qr', (qr) => {
     // NOTE: This event will not be fired if a session is specified.
     console.log('QR Generate');
-    console.log(qr);
-    qrcode_terminal.generate(qr, {small: true});
+    // console.log(qr);
+    // qrcode_terminal.generate(qr, {small: true});
 });
 client.on('authenticated', () => {
     console.log('AUTHENTICATED');
@@ -76,7 +75,7 @@ client.on('auth_failure', msg => {
 
 client.on('ready', () => {
     console.log('READY');
-    client.sendMessage("6281225518118@c.us", "hello");
+    // client.sendMessage("6281225518118@c.us", "hello");
 });
 client.on('message', async msg => {
     // console.log('MESSAGE RECEIVED', msg);
@@ -94,7 +93,6 @@ client.on('message', async msg => {
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
-*/
 // socket connection
 /*
 var today = new Date();
@@ -168,7 +166,7 @@ app.get('/devices', (req, res) => {
         });
     }else{       
         switch(action){
-            case "new":
+            case "new": //Not Used
                 client.initialize();
                 client.on('qr', (qr) => {
                     // NOTE: This event will not be fired if a session is specified.
@@ -206,8 +204,12 @@ app.get('/devices', (req, res) => {
                 });
                 break;
             case "send-message": //wa
-                if(!(body.recipient) === undefined){
-                    client.sendMessage(recipient+'@c.us', content)
+                // if(!(body.recipient) === undefined){
+                    console.log("Recipient: "+recipient);
+                    console.log("Node: "+content);
+                    // client.sendMessage(recipient+'@c.us', content)
+                    var rc = recipient+"@c.us";
+                    client.sendMessage(rc, content)
                     .then(response => {
                         res.status(200).json({
                             status: 1,
@@ -218,16 +220,16 @@ app.get('/devices', (req, res) => {
                     .catch(error => {
                         res.status(200).json({
                             status: 0,
-                            message: 'Message Sent;',
+                            message: 'Message Not Sent;',
                             result: error,
                         });
                     });   
-                }else{
-                    res.status(200).json({
-                        status: 0,
-                        message: 'Receipient not defined'
-                    });          
-                }
+                // }else{
+                //     res.status(200).json({
+                //         status: 0,
+                //         message: 'Receipient not defined'
+                //     });          
+                // }
                 break;
             case "load-user":
                 // http://localhost:8000/devices?action=load-user&order=user_id&start=0&limit=10&dir=asc
