@@ -13,3 +13,5 @@ Nodejs, Express
 
 #PM2 Documentation
 pm2 start server.js --watch
+
+lsof -i:3030

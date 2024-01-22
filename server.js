@@ -39,15 +39,15 @@ const server = http.createServer(app);
 // const client = new Client({
 //     authStrategy: new LocalAuth()
 // });
-const client = new Client();
-// const client = new Client({
-//     authStrategy: new LocalAuth(),
-//     // proxyAuthentication: { username: 'username', password: 'password' },
-//     puppeteer: { 
-//         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
-//         headless: false
-//     }
-// });
+// const client = new Client();
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    // proxyAuthentication: { username: 'username', password: 'password' },
+    puppeteer: { 
+        // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
+        headless: false
+    }
+});
 
 // index routing and middleware
 app.use(express.json());
