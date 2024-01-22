@@ -44,17 +44,9 @@ const client = new Client({
     authStrategy: new LocalAuth(),
     // proxyAuthentication: { username: 'username', password: 'password' },
     puppeteer: { 
-        args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process', // <- this one doesn't works in Windows
-        '--disable-gpu'
-        ],
-        headless: false
+        // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
+        args:['--no-sandbox'],
+        headless: true
     }
 });
 
@@ -66,6 +58,7 @@ app.get('/', (req, res) => {
 });
 
 // initialize whatsapp and the example event
+/*
 client.initialize();
 client.on('qr', (qr) => {
     // NOTE: This event will not be fired if a session is specified.
@@ -101,6 +94,7 @@ client.on('message', async msg => {
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
+*/
 // socket connection
 /*
 var today = new Date();
