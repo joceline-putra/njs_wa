@@ -15,7 +15,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 }
 
 // initial instance
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 3030;
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);

@@ -9,3 +9,7 @@ Nodejs, Express
 
 #Nodemon
 1. npm run server
+
+
+#PM2 Documentation
+pm2 start server.js --watch
