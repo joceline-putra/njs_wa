@@ -3,7 +3,7 @@ const fs        = require('fs');
 const express   = require('express');
 const qrcode    = require('qrcode');
 var qrcode_terminal = require('qrcode-terminal');
-const socketIO  = require('socket.io');
+// const socketIO  = require('socket.io');
 const http      = require('http');
 var cn          = require("./routes/db");
 
@@ -17,7 +17,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 // initial instance
 const PORT = process.env.PORT || 3030;
 const app = express();
-const server = http.createServer(app);
+// const server = http.createServer(app);s
 // const io = socketIO(server);
 // const client = new Client({
 //   restartOnAuthFail: true,
