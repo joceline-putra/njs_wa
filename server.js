@@ -18,7 +18,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 const PORT = process.env.PORT || 3030;
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
+// const io = socketIO(server);
 // const client = new Client({
 //   restartOnAuthFail: true,
 //   puppeteer: {
