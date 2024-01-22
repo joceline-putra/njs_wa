@@ -57,6 +57,7 @@ app.get('/', (req, res) => {
 });
 
 // initialize whatsapp and the example event
+/*
 client.initialize();
 client.on('qr', (qr) => {
     // NOTE: This event will not be fired if a session is specified.
@@ -92,7 +93,7 @@ client.on('message', async msg => {
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
-
+*/
 // socket connection
 /*
 var today = new Date();
@@ -166,6 +167,43 @@ app.get('/devices', (req, res) => {
         });
     }else{       
         switch(action){
+            case "new":
+                client.initialize();
+                client.on('qr', (qr) => {
+                    // NOTE: This event will not be fired if a session is specified.
+                    console.log('QR Generate');
+                    console.log(qr);
+                    qrcode_terminal.generate(qr, {small: true});
+                });
+                client.on('authenticated', () => {
+                    console.log('AUTHENTICATED');
+                });
+                client.on('auth_failure', msg => {
+                    // Fired if session restore was unsuccessful
+                    console.error('AUTHENTICATION FAILURE', msg);
+                });
+                
+                client.on('ready', () => {
+                    console.log('READY');
+                    client.sendMessage("6281225518118@c.us", "hello");
+                });
+                client.on('message', async msg => {
+                    // console.log('MESSAGE RECEIVED', msg);
+                
+                    if (msg.body === '!ping reply') {
+                        // Send a new message as a reply to the current one
+                        msg.reply('pong');
+                
+                    } else if (msg.body === '!ping') {
+                        // Send a new message to the same chat
+                        client.sendMessage(msg.from, 'pong');
+                
+                    } 
+                });
+                client.on('disconnected', (reason) => {
+                    console.log('Client was logged out', reason);
+                });
+                break;
             case "send-message": //wa
                 if(!(body.recipient) === undefined){
                     client.sendMessage(recipient+'@c.us', content)
