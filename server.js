@@ -1,11 +1,19 @@
+require('dotenv/config')
 const {Client, LocalAuth} = require('whatsapp-web.js');
-const fs        = require('fs');
-const express   = require('express');
-const qrcode    = require('qrcode');
-var qrcode_terminal = require('qrcode-terminal');
-// const socketIO  = require('socket.io');
-const http      = require('http');
-var cn          = require("./routes/db");
+const fs                  = require('fs');
+const express             = require('express');
+const qrcode           = require('qrcode');
+const qrcode_terminal  = require('qrcode-terminal');
+// const socketIO      = require('socket.io');
+const http             = require('http');
+
+const cn               = require("./src/config/database");
+const helper           = require("./src/helper.js");
+
+// Router
+var userRouter      = require("./src/routes/users");
+var deviceRouter    = require("./src/routes/devices");
+var messageRouter   = require("./src/routes/messages");
 
 // file config
 const SESSION_FILE_PATH = './wtf-session.json';
@@ -15,7 +23,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 }
 
 // initial instance
-const PORT = process.env.PORT || 3030;
+const PORT = process.env.APP_PORT || 3000;
 const app = express();
 const server = http.createServer(app);
 // const io = socketIO(server);
@@ -40,17 +48,21 @@ const server = http.createServer(app);
 //     authStrategy: new LocalAuth()
 // });
 // const client = new Client();
-const client = new Client({
-    authStrategy: new LocalAuth(),
-    // proxyAuthentication: { username: 'username', password: 'password' },
-    puppeteer: { 
-        // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
-        args:['--no-sandbox'],
-        headless: true
-    }
-});
+// const client = new Client({
+//     authStrategy: new LocalAuth(),
+//     // proxyAuthentication: { username: 'username', password: 'password' },
+//     puppeteer: { 
+//         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
+//         args:['--no-sandbox'],
+//         headless: true
+//     }
+// });
 
-// index routing and middleware
+// Index Routing and Middleware
+app.use(userRouter);
+app.use(deviceRouter);
+app.use(messageRouter);
+
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.get('/', (req, res) => {
@@ -58,6 +70,7 @@ app.get('/', (req, res) => {
 });
 
 // initialize whatsapp and the example event
+/*
 client.initialize();
 client.on('qr', (qr) => {
     // NOTE: This event will not be fired if a session is specified.
@@ -96,6 +109,7 @@ client.on('message', async msg => {
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
+*/
 // socket connection
 /*
 var today = new Date();
@@ -152,184 +166,7 @@ io.on('connection', (socket) => {
 */
 // send message routing
 
-app.get('/devices', (req, res) => {
-    let body = req.query;
-    // let body = req.body;
-    let action = body.action;
-    let auth = body.auth;
-    let sender = body.sender;
-    let recipient= body.recipient;
-    let content = body.content;
-    
-    console.log("Node: Body => "+JSON.stringify(body));
-    if(req.query.action == '' || req.query.action === undefined){   
-        res.status(200).json({
-            status: 0,
-            message: 'Action Not Found',
-        });
-    }else{       
-        switch(action){
-            case "new": //Not Used
-                client.initialize();
-                client.on('qr', (qr) => {
-                    // NOTE: This event will not be fired if a session is specified.
-                    console.log('QR Generate');
-                    console.log(qr);
-                    qrcode_terminal.generate(qr, {small: true});
-                });
-                client.on('authenticated', () => {
-                    console.log('AUTHENTICATED');
-                });
-                client.on('auth_failure', msg => {
-                    // Fired if session restore was unsuccessful
-                    console.error('AUTHENTICATION FAILURE', msg);
-                });
-                
-                client.on('ready', () => {
-                    console.log('READY');
-                    client.sendMessage("6281225518118@c.us", "hello");
-                });
-                client.on('message', async msg => {
-                    // console.log('MESSAGE RECEIVED', msg);
-                
-                    if (msg.body === '!ping reply') {
-                        // Send a new message as a reply to the current one
-                        msg.reply('pong');
-                
-                    } else if (msg.body === '!ping') {
-                        // Send a new message to the same chat
-                        client.sendMessage(msg.from, 'pong');
-                
-                    } 
-                });
-                client.on('disconnected', (reason) => {
-                    console.log('Client was logged out', reason);
-                });
-                break;
-            case "send-message": //wa
-                // if(!(body.recipient) === undefined){
-                    console.log("Recipient: "+recipient);
-                    console.log("Node: "+content);
-                    // client.sendMessage(recipient+'@c.us', content)
-                    var rc = recipient+"@c.us";
-                    client.sendMessage(rc, content)
-                    .then(response => {
-                        res.status(200).json({
-                            status: 1,
-                            message: 'Message Sent;',
-                            result: response,
-                        });
-                    })
-                    .catch(error => {
-                        res.status(200).json({
-                            status: 0,
-                            message: 'Message Not Sent;',
-                            result: error,
-                        });
-                    });   
-                // }else{
-                //     res.status(200).json({
-                //         status: 0,
-                //         message: 'Receipient not defined'
-                //     });          
-                // }
-                break;
-            case "load-message":
-                // http://localhost:8000/devices?action=load-user&order=user_id&start=0&limit=10&dir=asc
-				var order = body.order;
-				var limit = body.limit;
-				if(!(body["order"] === undefined)){ order = " ORDER BY `" + body["order"] + "` " + body["dir"].toUpperCase(); }else{ order = '';  }
-				if(!(body["limit"] === undefined)){ limit = " LIMIT " + body["start"] + "," + body["limit"]; }else{ limit = ' LIMIT 0,10'; }
-				
-				var sql = "SELECT * FROM `messages`" + order + "" + limit;
-				console.log("Node: Query => " + sql);
-				var query = cn.query(sql, (err, results) => {
-					if (!err) {
-                        /* var json = JSON.parse(JSON.stringify(results)); */
-                        res.status(200).json({
-                            status: 1,
-                            message: 'Message Sent;',
-                            result: results,
-                            total_records: results.length
-                        });                          
-                        console.log('Node: Works');  
-					} else {
-                        res.status(200).json({
-                            status: 0,
-                            message: err.sqlMessage
-                        });                    
-                        console.log("Error: " + err.sqlMessage);                                
-                    }
-				});
-                break;
-            case "send": //wa
-                // http://localhost:8000/devices?action=send
-				var order = body.order;
-				var limit = body.limit;
-				// if(!(body["order"] === undefined)){ order = " ORDER BY `" + body["order"] + "` " + body["dir"].toUpperCase(); }else{ order = ' ORDER BY message_id DESC';  }
-				// if(!(body["limit"] === undefined)){ limit = " LIMIT " + body["start"] + "," + body["limit"]; }else{ limit = ' LIMIT 0,1'; }
-				
-				// var sql = "SELECT * FROM `messages`" + order + "" + limit;
-				var sql = "SELECT * FROM `messages` WHERE message_flag=0 ORDER BY message_id ASC LIMIT 0,25";                
-				console.log("Node: Query => " + sql);
-				var query = cn.query(sql, (err, results) => {
-					if (!err) {
 
-                        //Fetch message
-                        var enqueList = [];
-                        results.forEach(async (v, i) => {
-                            var row = {
-                                id:v['message_id'],
-                                text:v['message_text'],
-                                recipient:v['message_contact_number'],
-                                flag:v['message_flag']
-                            };
-                            enqueList.push(row);
-                        });
-
-                        //Prepare for send message
-                        enqueList.forEach(async (v, i) =>{
-                            var rc = v['recipient']+"@c.us";
-                            client.sendMessage(rc, v['text'])
-                            .then(response => {
-                                // res.status(200).json({
-                                //     status: 1,
-                                //     message: 'Message Sent;',
-                                //     result: response,
-                                // });
-                                console.log('WhatsApp: '+rc+' ['+v['id']+'] Sent');
-                            })
-                            .catch(error => {
-                                // res.status(200).json({
-                                //     status: 0,
-                                //     message: 'Message Not Sent;',
-                                //     result: error,
-                                // });
-                                console.log('WhatsApp: '+rc+' ['+v['id']+'] Not Sent');
-                            });                             
-                        });  
-                        res.status(200).json({
-                            status: 1,
-                            message: 'Cronjob Success'
-                        });                         
-					} else {
-                        res.status(200).json({
-                            status: 0,
-                            message: err.sqlMessage
-                        });                    
-                        console.log("Error: " + err.sqlMessage);                                
-                    }
-				});
-                break;
-            default:
-                res.status(200).json({
-                    status: 0,
-                    message: 'Nothing to do',
-                });                
-                break;
-        }
-    }
-});
 app.get('/send', (req, res) => {
     const phone = req.body.phone;
     const message = req.body.message;
@@ -356,7 +193,11 @@ app.get('/send', (req, res) => {
     });
 });
 
+// Server Listening
 server.listen(PORT, () => {
     console.log('App listen on port ', PORT);
 });
+
+
+module.exports = app;
 
