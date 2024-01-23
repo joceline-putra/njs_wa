@@ -1,9 +1,10 @@
 const mysql = require('mysql');
 const connection = mysql.createConnection({
-	host:'127.0.0.1',
+	host:'localhost',
 	user:'root',
 	password:'@Master2023',
-	database:'whatsapp'
+	database:'whatsapp',
+	port:2233
 });
 connection.connect(function(error){
 	if(!!error) {
