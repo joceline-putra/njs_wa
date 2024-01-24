@@ -52,7 +52,40 @@ app.get('/messages', (req, res) => {
             case "create":
                 break;
             case "delete":
-                break;                
+                break;        
+            case "chat":
+                var number = body.number;
+                var term = body.term;
+				var sql = "CALL sp_chat_return(?,?)";                
+				// console.log("Node: Query => " + sql);
+				var query = cn.query(sql, [number, term], (err, results) => {
+					if (!err) {
+                        console.log(JSON.parse(JSON.stringify(results[0])));
+                        var textList = [];
+                        var textResult = '';
+                        results[0].forEach(async (v,i) => {
+                            textList.push({text:v['chat_text']});
+                            textResult = v['chat_text'];
+                        })
+                        console.log(textList);
+                        console.log(textResult);                        
+
+                        res.status(200).json({
+                            status: 1,
+                            message: 'Message Sent;',
+                            result: results[0],
+                            total_records: results[0].length
+                        });                          
+                        // console.log('Node: Works');  
+					} else {
+                        res.status(200).json({
+                            status: 0,
+                            message: err.sqlMessage
+                        });                    
+                        console.log("Error: " + err.sqlMessage);                                
+                    }
+				});                
+                break;        
             default:
                 res.status(200).json({
                     status: 0,
