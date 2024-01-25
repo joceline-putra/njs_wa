@@ -1,10 +1,11 @@
 const { Router } 	= require('express'); 
 const app			= Router(); 
-const helper        = require("./../helper.js");
+const {myAsyncFunction, myAsyncFunction2, returnJson}        = require("./../helper.js");
 
 var cn          	= require("../config/database");
-
 app.get('/messages', (req, res) => {
+    res.setHeader('Content-Type', 'application/json')
+
     let body = req.query;
     // let body = req.body;
     let action = body.action;
@@ -15,10 +16,7 @@ app.get('/messages', (req, res) => {
     
     console.log("Node: Body => "+JSON.stringify(body));
     if(req.query.action == '' || req.query.action === undefined){   
-        res.status(200).json({
-            status: 0,
-            message: 'Action Not Found',
-        });
+        returnJson(res, 0, 'Action Not Found');   
     }else{       
         switch(action){
             case "load":
@@ -49,43 +47,6 @@ app.get('/messages', (req, res) => {
                     }
 				});
                 break;
-            case "create":
-                break;
-            case "delete":
-                break;        
-            case "chat":
-                var number = body.number;
-                var term = body.term;
-				var sql = "CALL sp_chat_return(?,?)";                
-				// console.log("Node: Query => " + sql);
-				var query = cn.query(sql, [number, term], (err, results) => {
-					if (!err) {
-                        console.log(JSON.parse(JSON.stringify(results[0])));
-                        var textList = [];
-                        var textResult = '';
-                        results[0].forEach(async (v,i) => {
-                            textList.push({text:v['chat_text']});
-                            textResult = v['chat_text'];
-                        })
-                        console.log(textList);
-                        console.log(textResult);                        
-
-                        res.status(200).json({
-                            status: 1,
-                            message: 'Message Sent;',
-                            result: results[0],
-                            total_records: results[0].length
-                        });                          
-                        // console.log('Node: Works');  
-					} else {
-                        res.status(200).json({
-                            status: 0,
-                            message: err.sqlMessage
-                        });                    
-                        console.log("Error: " + err.sqlMessage);                                
-                    }
-				});                
-                break;        
             default:
                 res.status(200).json({
                     status: 0,

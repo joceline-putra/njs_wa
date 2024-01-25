@@ -8,12 +8,12 @@ const qrcode_terminal  = require('qrcode-terminal');
 const http             = require('http');
 
 const cn               = require("./src/config/database");
-const helper           = require("./src/helper.js");
+const {myAsyncFunction, myAsyncFunction2, returnJson, removeStringSender}        = require("./src/helper.js");
 
 // Router
-var userRouter      = require("./src/routes/users");
 var deviceRouter    = require("./src/routes/devices");
 var messageRouter   = require("./src/routes/messages");
+var chatRouter   = require("./src/routes/chats");
 
 // file config
 const SESSION_FILE_PATH = './wtf-session.json';
@@ -48,20 +48,20 @@ const server = http.createServer(app);
 //     authStrategy: new LocalAuth()
 // });
 // const client = new Client();
-// const client = new Client({
-//     authStrategy: new LocalAuth(),
-//     // proxyAuthentication: { username: 'username', password: 'password' },
-//     puppeteer: { 
-//         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
-//         args:['--no-sandbox'],
-//         headless: true
-//     }
-// });
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    // proxyAuthentication: { username: 'username', password: 'password' },
+    puppeteer: { 
+        // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
+        args:['--no-sandbox'],
+        headless: true
+    }
+});
 
 // Index Routing and Middleware
-app.use(userRouter);
 app.use(deviceRouter);
 app.use(messageRouter);
+app.use(chatRouter);
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -70,24 +70,23 @@ app.get('/', (req, res) => {
 });
 
 // initialize whatsapp and the example event
-/*
 client.initialize();
-client.on('qr', (qr) => {
-    // NOTE: This event will not be fired if a session is specified.
-    console.log('QR Generate');
-    console.log(qr);
-    qrcode_terminal.generate(qr, function (qrcode) {
-        console.log(qrcode);
-    });    
-    qrcode_terminal.generate(qr, {small: true});
-});
+// client.on('qr', (qr) => {
+//     // NOTE: This event will not be fired if a session is specified.
+//     console.log('QR Generate');
+//     console.log('https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+qr);
+//     // qrcode_terminal.generate(qr, function (qrcode) {
+//     //     console.log(qrcode);
+//     // });    
+//     qrcode_terminal.generate(qr, {small: true});
+// });
 client.on('authenticated', () => {
     console.log('AUTHENTICATED');
 });
-client.on('auth_failure', msg => {
-    // Fired if session restore was unsuccessful
-    console.error('AUTHENTICATION FAILURE', msg);
-});
+// client.on('auth_failure', msg => {
+//     // Fired if session restore was unsuccessful
+//     console.error('AUTHENTICATION FAILURE', msg);
+// });
 
 client.on('ready', () => {
     console.log('READY');
@@ -96,21 +95,46 @@ client.on('ready', () => {
 client.on('message', async msg => {
     // console.log('MESSAGE RECEIVED', msg);
 
-    if (msg.body === '!ping reply') {
+    if (msg.body === 'ping') {
+        // Send a new message as a reply to the current one
+        client.sendMessage(msg.from,'🖥️ Device is connected');
+    } else if (msg.body === '!ping') {
         // Send a new message as a reply to the current one
         msg.reply('pong');
-
-    } else if (msg.body === '!ping') {
-        // Send a new message to the same chat
-        client.sendMessage(msg.from, 'pong');
-
-    } 
+    } else{
+        function removeString(inputString) { 
+            return inputString.replace(/[^0-9]/g, ''); 
+        }        
+        const chat_Model = require('./src/models/chat_model');
+        const chatModel = new chat_Model();
+        var number = removeString(msg.to);
+        console.log(number, msg.body);
+        chatModel.callChatProcedure([number,msg.body]).then((result) => {
+            console.log('DEVICE SP: ', JSON.stringify(result[0]));
+            var textList = [];
+            var textResult = '';
+            result.forEach(async (v,i) => {
+                textList.push({text:v['chat_text']});
+                textResult = v['chat_text'];
+            })              
+            if(textResult.length > 0){       
+                client.sendMessage(msg.from, textResult);
+                console.log(textResult);  
+            }else{
+                console.log('Autoreply not send');
+            }                       
+            // returnJson(res, 1, 'Success', result[0]);           
+        }).catch((error) => {
+            console.error('Error retrieving device:', error.sqlMessage);
+            // returnJson(res, 0, error.sqlMessage);                                             
+        });       
+    }    
 });
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
-*/
-// socket connection
+
+// Socket Connection
 /*
 var today = new Date();
 var now = today.toLocaleString();
@@ -166,8 +190,7 @@ io.on('connection', (socket) => {
 */
 // send message routing
 
-
-app.get('/send', (req, res) => {
+app.get('/send', (req, res) => { //Not Used
     const phone = req.body.phone;
     const message = req.body.message;
     // console.log(req,res);

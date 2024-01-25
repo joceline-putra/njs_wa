@@ -1,30 +1,33 @@
 const { Router } 	= require('express'); 
 const app			= Router(); 
-const {myAsyncFunction, myAsyncFunction2}        = require("./../helper.js");
+const {myAsyncFunction, myAsyncFunction2, returnJson}        = require("./../helper.js");
 
 var cn          	= require("../config/database");
-const deviceModel = require('../models/device.model');
+const device_Model = require('../models/device_model');
+const deviceModel = new device_Model();
 
-const device = new deviceModel();
+let qrcodeApi = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=';
 
 app.get('/devices', (req, res) => {
-    let body = req.query;
-    // let body = req.body;
-    let action = body.action;
-    let auth = body.auth;
-    let sender = body.sender;
-    let recipient= body.recipient;
-    let content = body.content;
-    
+    res.setHeader('Content-Type', 'application/json')
+
+    let body = req.query
+    // let body = req.body
+    let action = body.action
+    let auth = body.auth
+    let sender = body.sender
+    let recipient= body.recipient
+    let content = body.content
+    let paramsDevice = {}
+
+    // https://medium.com/@devharipragaz007/simplifying-mysql-operations-in-node-js-with-a-custom-extendable-class-d77623dab710
+               
     console.log("Node: Body => "+JSON.stringify(body));
-    if(req.query.action == '' || req.query.action === undefined){   
-        res.status(200).json({
-            status: 0,
-            message: 'Action Not Found',
-        });
+    if(req.query.action == '' || req.query.action === undefined){ 
+        returnJson(res, 0, 'Action Not Found');   
     }else{       
         switch(action){
-            case "new": //Not Used
+            case "new": //Not Used, Sample
                 client.initialize();
                 client.on('qr', (qr) => {
                     // NOTE: This event will not be fired if a session is specified.
@@ -89,7 +92,7 @@ app.get('/devices', (req, res) => {
                 //     });          
                 // }
                 break;
-            case "load":
+            case "load": //Not Used, Sample
                 // http://localhost:8000/devices?action=load-user&order=user_id&start=0&limit=10&dir=asc
 				var order = body.order;
 				var limit = body.limit;
@@ -132,7 +135,7 @@ app.get('/devices', (req, res) => {
                     }
 				});
                 break;
-            case "send": //wa
+            case "send": //Not Used, Sample
                 // http://localhost:8000/devices?action=send
 				var order = body.order;
 				var limit = body.limit;
@@ -191,23 +194,64 @@ app.get('/devices', (req, res) => {
                     }
 				});
                 break;
-            case "helper1":
+            case "helper1": //Not Used, Sample
                 var a = myAsyncFunction();
                 console.log(a);
                 break;
-            case "read":
-                // https://medium.com/@devharipragaz007/simplifying-mysql-operations-in-node-js-with-a-custom-extendable-class-d77623dab710
-                device.findById(1).then((result) => {
-                    console.log('User with ID 1:', result);
+            case "create": //Works with model
+                // http://localhost:3030/devices?action=create&device_label=SS&device_number=8679789
+                paramsDevice = {
+                    device_label: body.device_label,
+                    device_number: body.device_number
+                };
+                deviceModel.create(paramsDevice).then((insertId) => {
+                    console.log('DEVICE CREATE: device_id => ', insertId);
+                    returnJson(res, 1, 'Success Created device_id => '+ insertId);                                     
+                }).catch((error) => {
+                    console.error('Error retrieving device:', error.sqlMessage);
+                    returnJson(res, 0, error.sqlMessage);                                             
+                });
+            break;                  
+            case "read": //Works with model
+                // http://localhost:3030/devices?action=read&device_id=1
+                deviceModel.findById(body.device_id).then((result) => {
+                    let deviceData = {
+                        device_id: result.device_id,
+                        device_number: result.device_number,
+                        device_auth: result.device_auth,
+                        device_qr: qrcodeApi + result.device_number
+                    }
+                    console.log('DEVICE READ: ', JSON.stringify(deviceData));
+                    returnJson(res, 1, 'Read '+body.device_id, deviceData);    
                 }).catch((error) => {
                     console.error('Error retrieving user:', error);
+                    returnJson(res, 0, error.sqlMessage);    
                 });
-                break;            
-            default:
-                res.status(200).json({
-                    status: 0,
-                    message: 'Nothing to do',
+                break;
+            case "update": //Works with model
+                // http://localhost:3030/devices?action=update&device_id=1&device_label=JOE
+                paramsDevice = {
+                    device_label: body.device_label,
+                };
+                deviceModel.update(body.device_id, paramsDevice).then((affectedRows) => {
+                    console.log('DEVICE UPDATE: ', body.device_id);
+                    returnJson(res, 1, 'Success Update '+body.device_id);                                     
+                }).catch((error) => {
+                    console.error('Error retrieving device:', error.sqlMessage);
+                    returnJson(res, 0, error.sqlMessage);                                             
+                });
+            case "delete": //Works with model
+                // http://localhost:3030/devices?action=delete&device_id=99
+                deviceModel.delete(body.device_id).then((affectedRows) => {
+                    console.log('DEVICE DELETE: ', body.device_id);
+                    returnJson(res, 1, 'Deleted '+body.device_id);                                     
+                }).catch((error) => {
+                    console.error('Error retrieving device:', error.sqlMessage);
+                    returnJson(res, 0, error.sqlMessage);                                             
                 });                
+            break;                            
+            default:
+                returnJson(res, 0, 'Nothing to do');        
                 break;
         }
     }

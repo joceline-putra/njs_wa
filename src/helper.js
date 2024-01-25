@@ -1,7 +1,9 @@
 module.exports =
 {
     myAsyncFunction,
-    myAsyncFunction2
+    myAsyncFunction2,
+    returnJson,
+    removeStringSender
 }
 
 
@@ -33,4 +35,15 @@ async function myAsyncFunction2(){
         console.log(error);
     }
     return;
+}
+
+async function returnJson(res, status, message, aa){
+    res.status(200).json({
+        status: status,
+        message: message,
+        result:aa
+    }); 
+}
+async function removeStringSender(inputString) { 
+    return inputString.replace(/[^0-9]/g, ''); 
 }
