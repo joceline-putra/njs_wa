@@ -1,7 +1,7 @@
 module.exports = {
     apps: [
         {
-            name: "PROJECT_NAME",
+            name: "APP_WA",
             script: "./server.js",
             instances: 2,
             max_memory_restart: "300M",
