@@ -11,7 +11,7 @@ const cn               = require("./src/config/database");
 const {myAsyncFunction, myAsyncFunction2, returnJson, removeStringSender}        = require("./src/helper.js");
 
 //Sementara
-const device_Model = require('../models/device_model');
+const device_Model = require('./src/models/device_model');
 const deviceModel = new device_Model();
 
 let qrcodeApi = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=';
