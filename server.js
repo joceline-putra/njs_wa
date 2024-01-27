@@ -224,4 +224,4 @@ server.listen(PORT, () => {
 
 
 module.exports = app;
-
+module.exports = client;

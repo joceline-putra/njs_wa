@@ -65,7 +65,16 @@ app.get('/devices', (req, res) => {
                 });
                 break;
             case "send-message": //wa
-                client.initialize();
+                // const client = new Client({
+                //     authStrategy: new LocalAuth(),
+                //     // proxyAuthentication: { username: 'username', password: 'password' },
+                //     puppeteer: { 
+                //         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
+                //         args:['--no-sandbox'],
+                //         headless: true
+                //     }
+                // });            
+                // client.initialize();
                 // if(!(body.recipient) === undefined){
                     console.log("Recipient: "+recipient);
                     console.log("Node: "+content);
