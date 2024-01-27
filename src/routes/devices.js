@@ -77,6 +77,7 @@ app.get('/devices', (req, res) => {
                             message: 'Message Sent;',
                             result: response,
                         });
+                        console.log('Sent to : '+recipient);
                     })
                     .catch(error => {
                         res.status(200).json({
@@ -84,6 +85,7 @@ app.get('/devices', (req, res) => {
                             message: 'Message Not Sent;',
                             result: error,
                         });
+                        console.log('Not Sent to : '+recipient);
                     });   
                 // }else{
                 //     res.status(200).json({
