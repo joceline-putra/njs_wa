@@ -102,32 +102,33 @@ client.on('message', async msg => {
         // Send a new message as a reply to the current one
         msg.reply('pong');
     } else{
-        function removeString(inputString) { 
-            return inputString.replace(/[^0-9]/g, ''); 
-        }        
-        const chat_Model = require('./src/models/chat_model');
-        const chatModel = new chat_Model();
-        var number = removeString(msg.to);
-        console.log(number, msg.body);
-        chatModel.callChatProcedure([number,msg.body]).then((result) => {
-            console.log('DEVICE SP: ', JSON.stringify(result[0]));
-            var textList = [];
-            var textResult = '';
-            result.forEach(async (v,i) => {
-                textList.push({text:v['chat_text']});
-                textResult = v['chat_text'];
-            })              
-            if(textResult.length > 0){       
-                client.sendMessage(msg.from, textResult);
-                console.log(textResult);  
-            }else{
-                console.log('Autoreply not send');
-            }                       
-            // returnJson(res, 1, 'Success', result[0]);           
-        }).catch((error) => {
-            console.error('Error retrieving device:', error.sqlMessage);
-            // returnJson(res, 0, error.sqlMessage);                                             
-        });       
+        // function removeString(inputString) { 
+        //     return inputString.replace(/[^0-9]/g, ''); 
+        // }        
+        // const chat_Model = require('./src/models/chat_model');
+        // const chatModel = new chat_Model();
+        // var number = removeString(msg.to);
+        // console.log(number, msg.body);
+        // chatModel.callChatProcedure([number,msg.body]).then((result) => {
+        //     console.log('DEVICE SP: ', JSON.stringify(result[0]));
+        //     var textList = [];
+        //     var textResult = '';
+        //     result.forEach(async (v,i) => {
+        //         textList.push({text:v['chat_text']});
+        //         textResult = v['chat_text'];
+        //     })              
+        //     if(textResult.length > 0){       
+        //         client.sendMessage(msg.from, textResult);
+        //         console.log(textResult);  
+        //     }else{
+        //         console.log('Autoreply not send');
+        //     }                       
+        //     // returnJson(res, 1, 'Success', result[0]);           
+        // }).catch((error) => {
+        //     console.error('Error retrieving device:', error.sqlMessage);
+        //     // returnJson(res, 0, error.sqlMessage);                                             
+        // });   
+        console.log('Message from'+msg.from);    
     }    
 });
 client.on('disconnected', (reason) => {
