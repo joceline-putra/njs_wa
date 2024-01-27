@@ -1,9 +1,9 @@
 module.exports = {
     apps: [
         {
-            name: "APP_WA",
+            name: "wa-node",
             script: "./server.js",
-            instances: 2,
+            instances: 1,
             max_memory_restart: "300M",
             // Logging
             out_file: "./_out.log",
