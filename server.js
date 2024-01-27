@@ -71,22 +71,22 @@ app.get('/', (req, res) => {
 
 // initialize whatsapp and the example event
 client.initialize();
-// client.on('qr', (qr) => {
-//     // NOTE: This event will not be fired if a session is specified.
-//     console.log('QR Generate');
-//     console.log('https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+qr);
-//     // qrcode_terminal.generate(qr, function (qrcode) {
-//     //     console.log(qrcode);
-//     // });    
-//     qrcode_terminal.generate(qr, {small: true});
-// });
+client.on('qr', (qr) => {
+    // NOTE: This event will not be fired if a session is specified.
+    console.log('QR Generate');
+    console.log('https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+qr);
+    // qrcode_terminal.generate(qr, function (qrcode) {
+    //     console.log(qrcode);
+    // });    
+    qrcode_terminal.generate(qr, {small: true});
+});
 client.on('authenticated', () => {
     console.log('AUTHENTICATED');
 });
-// client.on('auth_failure', msg => {
-//     // Fired if session restore was unsuccessful
-//     console.error('AUTHENTICATION FAILURE', msg);
-// });
+client.on('auth_failure', msg => {
+    // Fired if session restore was unsuccessful
+    console.error('AUTHENTICATION FAILURE', msg);
+});
 
 client.on('ready', () => {
     console.log('READY');
