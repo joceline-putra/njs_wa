@@ -65,6 +65,7 @@ app.get('/devices', (req, res) => {
                 });
                 break;
             case "send-message": //wa
+                client.initialize();
                 // if(!(body.recipient) === undefined){
                     console.log("Recipient: "+recipient);
                     console.log("Node: "+content);
