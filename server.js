@@ -100,9 +100,9 @@ client.on('qr', (qr) => {
     // NOTE: This event will not be fired if a session is specified.
     console.log('QR Generate');
     qrcode_terminal.generate(qr, function (qrcode) {
-        console.log(qrcode);
+        // console.log(qrcode);
     });    
-    qrcode_terminal.generate(qr, {small: true});
+    // qrcode_terminal.generate(qr, {small: true});
     console.log('https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+qr);
 });
 client.on('authenticated', (session) => {
