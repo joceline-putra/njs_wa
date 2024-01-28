@@ -1,6 +1,8 @@
 const { Router } 	= require('express'); 
 const app			= Router(); 
 const {myAsyncFunction, myAsyncFunction2, returnJson}        = require("./../helper.js");
+// const { client } = require('../../server.js')
+// const {Client, LocalAuth, MessageMedia} = require('whatsapp-web.js')
 
 var cn          	= require("../config/database");
 const device_Model = require('../models/device_model');
@@ -18,6 +20,7 @@ app.get('/devices', (req, res) => {
     let sender = body.sender
     let recipient= body.recipient
     let content = body.content
+    let attach = body.file    
     let paramsDevice = {}
 
     // https://medium.com/@devharipragaz007/simplifying-mysql-operations-in-node-js-with-a-custom-extendable-class-d77623dab710
@@ -47,16 +50,16 @@ app.get('/devices', (req, res) => {
                     console.log('READY');
                     client.sendMessage("6281225518118@c.us", "hello");
                 });
-                client.on('message', async msg => {
+                client.on('message', async (msg) => {
                     // console.log('MESSAGE RECEIVED', msg);
                 
                     if (msg.body === '!ping reply') {
                         // Send a new message as a reply to the current one
-                        msg.reply('pong');
+                        await msg.reply('pong');
                 
                     } else if (msg.body === '!ping') {
                         // Send a new message to the same chat
-                        client.sendMessage(msg.from, 'pong');
+                        await client.sendMessage(msg.from, 'pong');
                 
                     } 
                 });
@@ -80,6 +83,11 @@ app.get('/devices', (req, res) => {
                     console.log("Node: "+content);
                     // client.sendMessage(recipient+'@c.us', content)
                     var rc = recipient+"@c.us";
+
+                    // if(attach.length > 0){
+                        // content = MessageMedia.fromUrl(attach);
+                    // }
+                    // console.log(attach.length);
                     client.sendMessage(rc, content)
                     .then(response => {
                         res.status(200).json({

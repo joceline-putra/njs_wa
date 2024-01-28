@@ -1,17 +1,18 @@
 #NJS
 Nodejs, Express
 
-#Node
-1. node run app
+#Node [How to start]
+- node run app
 
-#Yarn
-1. yarn start
+#Yarn [How to start]
+- yarn start
 
-#Nodemon
-1. npm run server
+#Nodemon [How to start]
+- npm run server
 
-
-#PM2 Documentation
+#PM2 
 pm2 start server.js --watch
+pm2 list
 
+#Port Used on VPS
 lsof -i:3030

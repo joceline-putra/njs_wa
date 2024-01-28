@@ -1,5 +1,5 @@
 require('dotenv/config')
-const {Client, LocalAuth} = require('whatsapp-web.js');
+const {Client, LocalAuth, MessageMedia} = require('whatsapp-web.js');
 const fs                  = require('fs');
 const express             = require('express');
 const qrcode           = require('qrcode');
@@ -10,60 +10,22 @@ const http             = require('http');
 const cn               = require("./src/config/database");
 const {myAsyncFunction, myAsyncFunction2, returnJson, removeStringSender}        = require("./src/helper.js");
 
-//Sementara
+//Sementara copy dari /src/routes/devices.js
 const device_Model = require('./src/models/device_model');
 const deviceModel = new device_Model();
 
 let qrcodeApi = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=';
-//Sementara 
+//End Sementara copy dari /src/routes/devices.js
 
 // Router
 // var deviceRouter    = require("./src/routes/devices");
 var messageRouter   = require("./src/routes/messages");
 var chatRouter   = require("./src/routes/chats");
 
-// file config
-const SESSION_FILE_PATH = './wtf-session.json';
-let sessionCfg;
-if (fs.existsSync(SESSION_FILE_PATH)) {
-    sessionCfg = require(SESSION_FILE_PATH);
-}
-
 // initial instance
 const PORT = process.env.APP_PORT || 3000;
 const app = express();
 const server = http.createServer(app);
-// const io = socketIO(server);
-// const client = new Client({
-//   restartOnAuthFail: true,
-//   puppeteer: {
-//     headless: true,
-//     args: [
-//       '--no-sandbox',
-//       '--disable-setuid-sandbox',
-//       '--disable-dev-shm-usage',
-//       '--disable-accelerated-2d-canvas',
-//       '--no-first-run',
-//       '--no-zygote',
-//       '--single-process', // <- this one doesn't works in Windows
-//       '--disable-gpu'
-//     ],
-//   },
-//   session: sessionCfg
-// });
-// const client = new Client({
-//     authStrategy: new LocalAuth()
-// });
-// const client = new Client();
-const client = new Client({
-    authStrategy: new LocalAuth(),
-    // proxyAuthentication: { username: 'username', password: 'password' },
-    puppeteer: { 
-        // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
-        args:['--no-sandbox'],
-        headless: true
-    }
-});
 
 // Index Routing and Middleware
 // app.use(deviceRouter);
@@ -76,20 +38,85 @@ app.get('/', (req, res) => {
     res.sendFile('index.html', {root: __dirname});
 });
 
+// Server Listening
+server.listen(PORT, () => {
+    console.log('App listen on port ', PORT);
+});
+
+// const client = new Client({
+//     authStrategy: new LocalAuth()
+// });
+// const client = new Client();
+
+const client = new Client({
+    authStrategy: new LocalAuth({
+        clientId: 'sessionKamu',
+        dataPath: './.wwebjs_auth',
+        // store:storedd,
+        backupSyncIntervalMs: 600000
+    }),
+    // proxyAuthentication: { username: 'username', password: 'password' },
+    puppeteer: { 
+        // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
+        args: ['--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-extensions',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process', // <- this one doesn't works in Windows
+        '--disable-gpu'],
+        headless: true
+    }
+});
+// Check if a session file exists and load it if so
+// const SESSION_FILE_PATH = './session.json';
+// let sessionCfg;
+// if (fs.existsSync(SESSION_FILE_PATH)) {
+//     sessionCfg = require(SESSION_FILE_PATH);
+// }
+// const client = new Client({
+//     puppeteer: {
+//         headless: false,
+//         args: ['--no-sandbox',
+//         '--disable-setuid-sandbox',
+//         '--disable-extensions',
+//         '--disable-dev-shm-usage',
+//         '--disable-accelerated-2d-canvas',
+//         '--no-first-run',
+//         '--no-zygote',
+//         '--single-process', // <- this one doesn't works in Windows
+//         '--disable-gpu']
+//     },
+//     executablePath: '/usr/bin/google-chrome-stable',
+//     session: sessionCfg
+// });
+
+
 // initialize whatsapp and the example event
 client.initialize();
 client.on('qr', (qr) => {
     // NOTE: This event will not be fired if a session is specified.
     console.log('QR Generate');
     console.log('https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+qr);
-    // qrcode_terminal.generate(qr, function (qrcode) {
-    //     console.log(qrcode);
-    // });    
+    qrcode_terminal.generate(qr, function (qrcode) {
+        console.log(qrcode);
+    });    
     qrcode_terminal.generate(qr, {small: true});
 });
-client.on('authenticated', () => {
-    console.log('AUTHENTICATED');
+client.on('authenticated', (session) => {
+    console.log('AUTHENTICATED',session);
 });
+// client.on('authenticated', (session) => {
+//     console.log('AUTHENTICATED', session);
+//     sessionCfg=session;
+//     fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
+//         if (err) {
+//             console.error(err);
+//         }
+//     });
+// });
 client.on('auth_failure', msg => {
     // Fired if session restore was unsuccessful
     console.error('AUTHENTICATION FAILURE', msg);
@@ -99,15 +126,15 @@ client.on('ready', () => {
     console.log('READY');
     // client.sendMessage("6281225518118@c.us", "hello");
 });
-client.on('message', async msg => {
+client.on('message', async (msg) => {
     // console.log('MESSAGE RECEIVED', msg);
 
     if (msg.body === 'ping') {
         // Send a new message as a reply to the current one
-        client.sendMessage(msg.from,'🖥️ Device is connected');
+        await client.sendMessage(msg.from,'🖥️ Device is connected');
     } else if (msg.body === '!ping') {
         // Send a new message as a reply to the current one
-        msg.reply('pong');
+        await msg.reply('pong');
     } else{
         // function removeString(inputString) { 
         //     return inputString.replace(/[^0-9]/g, ''); 
@@ -135,7 +162,7 @@ client.on('message', async msg => {
         //     console.error('Error retrieving device:', error.sqlMessage);
         //     // returnJson(res, 0, error.sqlMessage);                                             
         // });   
-        console.log('Message from'+msg.from);    
+        console.log('Message from '+msg.from);    
     }    
 });
 client.on('disconnected', (reason) => {
@@ -197,6 +224,7 @@ io.on('connection', (socket) => {
 });
 */
 // send message routing
+
 app.get('/devices', (req, res) => {
     res.setHeader('Content-Type', 'application/json')
 
@@ -207,6 +235,7 @@ app.get('/devices', (req, res) => {
     let sender = body.sender
     let recipient= body.recipient
     let content = body.content
+    let attach = body.file    
     let paramsDevice = {}
 
     // https://medium.com/@devharipragaz007/simplifying-mysql-operations-in-node-js-with-a-custom-extendable-class-d77623dab710
@@ -236,16 +265,16 @@ app.get('/devices', (req, res) => {
                     console.log('READY');
                     client.sendMessage("6281225518118@c.us", "hello");
                 });
-                client.on('message', async msg => {
+                client.on('message', async (msg) => {
                     // console.log('MESSAGE RECEIVED', msg);
                 
                     if (msg.body === '!ping reply') {
                         // Send a new message as a reply to the current one
-                        msg.reply('pong');
+                        await msg.reply('pong');
                 
                     } else if (msg.body === '!ping') {
                         // Send a new message to the same chat
-                        client.sendMessage(msg.from, 'pong');
+                        await client.sendMessage(msg.from, 'pong');
                 
                     } 
                 });
@@ -269,6 +298,11 @@ app.get('/devices', (req, res) => {
                     console.log("Node: "+content);
                     // client.sendMessage(recipient+'@c.us', content)
                     var rc = recipient+"@c.us";
+
+                    // if(attach.length > 0){
+                        // content = MessageMedia.fromUrl(attach);
+                    // }
+                    // console.log(attach.length);
                     client.sendMessage(rc, content)
                     .then(response => {
                         res.status(200).json({
@@ -458,38 +492,5 @@ app.get('/devices', (req, res) => {
     }
 });
 
-
-app.get('/send', (req, res) => { //Not Used
-    const phone = req.body.phone;
-    const message = req.body.message;
-    // console.log(req,res);
-    // client.sendMessage(phone, message)
-    client.sendMessage('6281225518118@c.us', '/Send API Success')
-    .then(response => {
-        res.status(200).json({
-            error: false,
-            data: {
-                message: 'Pesan terkirim',
-                meta: response,
-            },
-        });
-    })
-    .catch(error => {
-        res.status(200).json({
-            error: true,
-            data: {
-                message: 'Error send message',
-                meta: error,
-            },
-        });
-    });
-});
-
-// Server Listening
-server.listen(PORT, () => {
-    console.log('App listen on port ', PORT);
-});
-
-
 module.exports = app;
-// module.exports = client;
+// module.exports = client, LocalAuth;
