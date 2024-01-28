@@ -2,6 +2,7 @@
 Nodejs, Express
 
 #Node [How to start]
+- node watch server.js
 - node run app
 
 #Yarn [How to start]
