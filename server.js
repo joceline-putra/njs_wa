@@ -8,7 +8,7 @@ const socketIO      = require('socket.io');
 const http             = require('http');
 
 const cn               = require("./src/config/database");
-const {myAsyncFunction, myAsyncFunction2, returnJson, removeStringSender}        = require("./src/helper.js");
+const {myAsyncFunction, myAsyncFunction2, returnJson, removeStringSender, phoneNumberFormatter}        = require("./src/helper.js");
 
 //Sementara copy dari /src/routes/devices.js
 const device_Model = require('./src/models/device_model');
@@ -36,7 +36,7 @@ app.use(chatRouter);
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.get('/', (req, res) => {
-    res.sendFile('index.html', {root: __dirname});
+    res.sendFile('./public/index.html', {root: __dirname});
 });
 
 // Server Listening
@@ -44,14 +44,9 @@ server.listen(PORT, () => {
     console.log('App listen on port ', PORT);
 });
 
-// const client = new Client({
-//     authStrategy: new LocalAuth()
-// });
-// const client = new Client();
-
 const client = new Client({
     authStrategy: new LocalAuth({
-        clientId: 'sessionKamu',
+        // clientId: 'sessionKamu',
         dataPath: './.wwebjs_auth',
         // store:storedd,
         backupSyncIntervalMs: 600000
@@ -59,13 +54,8 @@ const client = new Client({
     // proxyAuthentication: { username: 'username', password: 'password' },
     puppeteer: { 
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
-        args: ['--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-extensions',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
+        args: ['--no-sandbox','--disable-setuid-sandbox','--disable-extensions','--disable-dev-shm-usage','--disable-accelerated-2d-canvas',
+        '--no-first-run','--no-zygote',
         '--single-process', // <- this one doesn't works in Windows
         '--disable-gpu'],
         headless: true
@@ -78,17 +68,13 @@ const client = new Client({
 //     sessionCfg = require(SESSION_FILE_PATH);
 // }
 // const client = new Client({
-//     puppeteer: {
-//         headless: false,
-//         args: ['--no-sandbox',
-//         '--disable-setuid-sandbox',
-//         '--disable-extensions',
-//         '--disable-dev-shm-usage',
-//         '--disable-accelerated-2d-canvas',
-//         '--no-first-run',
-//         '--no-zygote',
+//     puppeteer: { 
+//         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
+//         args: ['--no-sandbox','--disable-setuid-sandbox','--disable-extensions','--disable-dev-shm-usage','--disable-accelerated-2d-canvas',
+//         '--no-first-run','--no-zygote',
 //         '--single-process', // <- this one doesn't works in Windows
-//         '--disable-gpu']
+//         '--disable-gpu'],
+//         headless: true
 //     },
 //     executablePath: '/usr/bin/google-chrome-stable',
 //     session: sessionCfg
@@ -98,84 +84,84 @@ const client = new Client({
 /* 
 PLAN 1 [TERMINAL]
 */
-// initialize whatsapp and the example event
-// client.initialize();
-// client.on('qr', (qr) => {
-//     // NOTE: This event will not be fired if a session is specified.
-//     console.log('QR Generate');
-//     qrcode_terminal.generate(qr, function (qrcode) {
-//         // console.log(qrcode);
-//     });    
-//     console.log('https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+qr);
-//     qrcode_terminal.generate(qr, {small: true});
-// });
-// client.on('authenticated', (session) => {
-//     console.log('AUTHENTICATED',session);
-// });
+    // initialize whatsapp and the example event
+    // client.initialize();
+    // client.on('qr', (qr) => {
+    //     // NOTE: This event will not be fired if a session is specified.
+    //     console.log('QR Generate');
+    //     qrcode_terminal.generate(qr, function (qrcode) {
+    //         // console.log(qrcode);
+    //     });    
+    //     console.log('https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+qr);
+    //     qrcode_terminal.generate(qr, {small: true});
+    // });
+    // client.on('authenticated', (session) => {
+    //     console.log('AUTHENTICATED',session);
+    // });
 
-// Not Used
-// client.on('authenticated', (session) => {
-//     console.log('AUTHENTICATED', session);
-//     sessionCfg=session;
-//     fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
-//         if (err) {
-//             console.error(err);
-//         }
-//     });
-// });
-// End Not Used
+    // // Not Used
+    // // client.on('authenticated', (session) => {
+    // //     console.log('AUTHENTICATED', session);
+    // //     sessionCfg=session;
+    // //     fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
+    // //         if (err) {
+    // //             console.error(err);
+    // //         }
+    // //     });
+    // // });
+    // // End Not Used
 
-// client.on('auth_failure', msg => {
-//     // Fired if session restore was unsuccessful
-//     console.error('AUTHENTICATION FAILURE', msg);
-// });
+    // client.on('auth_failure', msg => {
+    //     // Fired if session restore was unsuccessful
+    //     console.error('AUTHENTICATION FAILURE', msg);
+    // });
 
-// client.on('ready', () => {
-//     console.log('READY');
-//     // client.sendMessage("6281225518118@c.us", "hello");
-// });
-// client.on('message', async (msg) => {
-//     // console.log('MESSAGE RECEIVED', msg);
+    // client.on('ready', () => {
+    //     console.log('READY');
+    //     // client.sendMessage("6281225518118@c.us", "hello");
+    // });
+    // client.on('message', async (msg) => {
+    //     // console.log('MESSAGE RECEIVED', msg);
 
-//     if (msg.body === 'ping') {
-//         // Send a new message as a reply to the current one
-//         await client.sendMessage(msg.from,'🖥️ Device is connected');
-//     } else if (msg.body === '!ping') {
-//         // Send a new message as a reply to the current one
-//         await msg.reply('pong');
-//     } else{
-//         // function removeString(inputString) { 
-//         //     return inputString.replace(/[^0-9]/g, ''); 
-//         // }        
-//         // const chat_Model = require('./src/models/chat_model');
-//         // const chatModel = new chat_Model();
-//         // var number = removeString(msg.to);
-//         // console.log(number, msg.body);
-//         // chatModel.callChatProcedure([number,msg.body]).then((result) => {
-//         //     console.log('DEVICE SP: ', JSON.stringify(result[0]));
-//         //     var textList = [];
-//         //     var textResult = '';
-//         //     result.forEach(async (v,i) => {
-//         //         textList.push({text:v['chat_text']});
-//         //         textResult = v['chat_text'];
-//         //     })              
-//         //     if(textResult.length > 0){       
-//         //         client.sendMessage(msg.from, textResult);
-//         //         console.log(textResult);  
-//         //     }else{
-//         //         console.log('Autoreply not send');
-//         //     }                       
-//         //     // returnJson(res, 1, 'Success', result[0]);           
-//         // }).catch((error) => {
-//         //     console.error('Error retrieving device:', error.sqlMessage);
-//         //     // returnJson(res, 0, error.sqlMessage);                                             
-//         // });   
-//         console.log('Message from '+msg.from);    
-//     }    
-// });
-// client.on('disconnected', (reason) => {
-//     console.log('Client was logged out', reason);
-// });
+    //     if (msg.body === 'ping') {
+    //         // Send a new message as a reply to the current one
+    //         await client.sendMessage(msg.from,'🖥️ Device is connected');
+    //     } else if (msg.body === '!ping') {
+    //         // Send a new message as a reply to the current one
+    //         await msg.reply('pong');
+    //     } else{
+    //         // function removeString(inputString) { 
+    //         //     return inputString.replace(/[^0-9]/g, ''); 
+    //         // }        
+    //         // const chat_Model = require('./src/models/chat_model');
+    //         // const chatModel = new chat_Model();
+    //         // var number = removeString(msg.to);
+    //         // console.log(number, msg.body);
+    //         // chatModel.callChatProcedure([number,msg.body]).then((result) => {
+    //         //     console.log('DEVICE SP: ', JSON.stringify(result[0]));
+    //         //     var textList = [];
+    //         //     var textResult = '';
+    //         //     result.forEach(async (v,i) => {
+    //         //         textList.push({text:v['chat_text']});
+    //         //         textResult = v['chat_text'];
+    //         //     })              
+    //         //     if(textResult.length > 0){       
+    //         //         client.sendMessage(msg.from, textResult);
+    //         //         console.log(textResult);  
+    //         //     }else{
+    //         //         console.log('Autoreply not send');
+    //         //     }                       
+    //         //     // returnJson(res, 1, 'Success', result[0]);           
+    //         // }).catch((error) => {
+    //         //     console.error('Error retrieving device:', error.sqlMessage);
+    //         //     // returnJson(res, 0, error.sqlMessage);                                             
+    //         // });   
+    //         console.log('Message from '+msg.from);    
+    //     }    
+    // });
+    // client.on('disconnected', (reason) => {
+    //     console.log('Client was logged out', reason);
+    // });
 /* 
 END PLAN 1 [TERMINAL]
 */
@@ -183,96 +169,100 @@ END PLAN 1 [TERMINAL]
 /* 
 PLAN 2 [SOCKET CONNECTION]
 */
-var today = new Date();
-var now = today.toLocaleString();
-client.initialize();
-io.on('connection', (socket) => {
-    console.log('Socket Connected');
-    socket.emit('message', `${now} Connected`);
+    var today = new Date();
+    var now = today.toLocaleString();
+    client.initialize();
+    io.on('connection', (socket) => {
+        console.log('Socket Connected');
+        socket.emit('message', `${now} : Connected`);
 
-    client.on('qr', (qr) => {
-        console.log('QR Received');        
-        qrcode.toDataURL(qr, (err, url) => {
-            socket.emit("qr", url);
-            socket.emit('message', `${now} QR Code received`);
+        client.on('qr', (qr) => {
+            console.log('QR Received');        
+            qrcode.toDataURL(qr, (err, url) => {
+                socket.emit("qr", url);
+                socket.emit('message', `${now} : QR Code received`);
+            });
+        });
+
+        client.on('ready', () => {
+            console.log('WhatsApp is ready');        
+            socket.emit('message', `${now} : WhatsApp is ready!`);
+        });
+
+        /*
+        client.on('authenticated', (session) => {
+            console.log('Authenticating');
+            socket.emit('message', `${now} Whatsapp is authenticated!`);
+            sessionCfg = session;
+            fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
+                if (err) {
+                    console.error(err);
+                }
+            });
+        });
+        */
+
+        client.on('authenticated', () => {
+            console.log('AUTHENTICATED');
+            socket.emit('message', `${now} : Authenticated`);            
+        });
+        client.on('message', async (msg) => {
+            // console.log('MESSAGE RECEIVED', msg);
+
+            if (msg.body === 'ping') {
+                // Send a new message as a reply to the current one
+                await client.sendMessage(msg.from,'🖥️ Device Socket is connected');
+            } else if (msg.body === '!ping') {
+                // Send a new message as a reply to the current one
+                await msg.reply('pong');
+            } else{
+                // function removeString(inputString) { 
+                //     return inputString.replace(/[^0-9]/g, ''); 
+                // }        
+                // const chat_Model = require('./src/models/chat_model');
+                // const chatModel = new chat_Model();
+                // var number = removeString(msg.to);
+                // console.log(number, msg.body);
+                // chatModel.callChatProcedure([number,msg.body]).then((result) => {
+                //     console.log('DEVICE SP: ', JSON.stringify(result[0]));
+                //     var textList = [];
+                //     var textResult = '';
+                //     result.forEach(async (v,i) => {
+                //         textList.push({text:v['chat_text']});
+                //         textResult = v['chat_text'];
+                //     })              
+                //     if(textResult.length > 0){       
+                //         client.sendMessage(msg.from, textResult);
+                //         console.log(textResult);  
+                //     }else{
+                //         console.log('Autoreply not send');
+                //     }                       
+                //     // returnJson(res, 1, 'Success', result[0]);           
+                // }).catch((error) => {
+                //     console.error('Error retrieving device:', error.sqlMessage);
+                //     // returnJson(res, 0, error.sqlMessage);                                             
+                // });   
+                console.log('Message from '+msg.from);    
+            }    
+        });    
+        client.on('auth_failure', function (session) {
+            console.log('Authentication Failure');
+            socket.emit('message', `${now} : Auth failure, restarting...`);
+        });
+        client.on('disconnected', function () {
+            console.log('Disconected');
+            socket.emit('message', `${now} : Disconnected`);
+            if (fs.existsSync(SESSION_FILE_PATH)) {
+                fs.unlinkSync(SESSION_FILE_PATH, function (err) {
+                    if (err)
+                        return console.log(err);
+                    console.log('Session file deleted!');
+                });
+                client.destroy();
+                client.initialize();
+            }
         });
     });
-
-    client.on('ready', () => {
-        console.log('WhatsApp is ready');        
-        socket.emit('message', `${now} WhatsApp is ready!`);
-    });
-
-    // client.on('authenticated', (session) => {
-    //     console.log('Authenticating');
-    //     socket.emit('message', `${now} Whatsapp is authenticated!`);
-    //     sessionCfg = session;
-    //     fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-    //         if (err) {
-    //             console.error(err);
-    //         }
-    //     });
-    // });
-    client.on('authenticated', () => {
-        console.log('AUTHENTICATED');
-    });
-    client.on('message', async (msg) => {
-        // console.log('MESSAGE RECEIVED', msg);
-
-        if (msg.body === 'ping') {
-            // Send a new message as a reply to the current one
-            await client.sendMessage(msg.from,'🖥️ Device is connected');
-        } else if (msg.body === '!ping') {
-            // Send a new message as a reply to the current one
-            await msg.reply('pong');
-        } else{
-            // function removeString(inputString) { 
-            //     return inputString.replace(/[^0-9]/g, ''); 
-            // }        
-            // const chat_Model = require('./src/models/chat_model');
-            // const chatModel = new chat_Model();
-            // var number = removeString(msg.to);
-            // console.log(number, msg.body);
-            // chatModel.callChatProcedure([number,msg.body]).then((result) => {
-            //     console.log('DEVICE SP: ', JSON.stringify(result[0]));
-            //     var textList = [];
-            //     var textResult = '';
-            //     result.forEach(async (v,i) => {
-            //         textList.push({text:v['chat_text']});
-            //         textResult = v['chat_text'];
-            //     })              
-            //     if(textResult.length > 0){       
-            //         client.sendMessage(msg.from, textResult);
-            //         console.log(textResult);  
-            //     }else{
-            //         console.log('Autoreply not send');
-            //     }                       
-            //     // returnJson(res, 1, 'Success', result[0]);           
-            // }).catch((error) => {
-            //     console.error('Error retrieving device:', error.sqlMessage);
-            //     // returnJson(res, 0, error.sqlMessage);                                             
-            // });   
-            console.log('Message from '+msg.from);    
-        }    
-    });    
-    client.on('auth_failure', function (session) {
-        console.log('Authentication Failure');
-        socket.emit('message', `${now} Auth failure, restarting...`);
-    });
-    client.on('disconnected', function () {
-        console.log('Disconected');
-        socket.emit('message', `${now} Disconnected`);
-        if (fs.existsSync(SESSION_FILE_PATH)) {
-            fs.unlinkSync(SESSION_FILE_PATH, function (err) {
-                if (err)
-                    return console.log(err);
-                console.log('Session file deleted!');
-            });
-            client.destroy();
-            client.initialize();
-        }
-    });
-});
 /*
 END PLAN 2 [SOCKET CONNECTION]
 */
@@ -298,43 +288,121 @@ app.get('/devices', (req, res) => {
     }else{       
         switch(action){
             case "new": //Not Used, Sample
+                let client = new Client({
+                    authStrategy: new LocalAuth({
+                        clientId: 'session-'+sender,
+                        dataPath: './.wwebjs_auth',
+                        // store:storedd,
+                        backupSyncIntervalMs: 600000
+                    }),
+                    // proxyAuthentication: { username: 'username', password: 'password' },
+                    puppeteer: { 
+                        // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
+                        args: ['--no-sandbox','--disable-setuid-sandbox','--disable-extensions','--disable-dev-shm-usage','--disable-accelerated-2d-canvas',
+                        '--no-first-run','--no-zygote',
+                        '--single-process', // <- this one doesn't works in Windows
+                        '--disable-gpu'],
+                        headless: true
+                    }
+                });
                 client.initialize();
                 client.on('qr', (qr) => {
                     // NOTE: This event will not be fired if a session is specified.
                     console.log('QR Generate');
-                    console.log(qr);
+                    qrcode_terminal.generate(qr, function (qrcode) {
+                        // console.log(qrcode);
+                    });    
+                    console.log('https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+qr);
                     qrcode_terminal.generate(qr, {small: true});
                 });
-                client.on('authenticated', () => {
-                    console.log('AUTHENTICATED');
+                client.on('authenticated', (session) => {
+                    console.log('AUTHENTICATED',session);
                 });
+            
+                // Not Used
+                // client.on('authenticated', (session) => {
+                //     console.log('AUTHENTICATED', session);
+                //     sessionCfg=session;
+                //     fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
+                //         if (err) {
+                //             console.error(err);
+                //         }
+                //     });
+                // });
+                // End Not Used
+            
                 client.on('auth_failure', msg => {
                     // Fired if session restore was unsuccessful
                     console.error('AUTHENTICATION FAILURE', msg);
                 });
-                
+            
                 client.on('ready', () => {
                     console.log('READY');
-                    client.sendMessage("6281225518118@c.us", "hello");
+                    // client.sendMessage("6281225518118@c.us", "hello");
                 });
                 client.on('message', async (msg) => {
                     // console.log('MESSAGE RECEIVED', msg);
-                
-                    if (msg.body === '!ping reply') {
+            
+                    if (msg.body === 'ping') {
+                        // Send a new message as a reply to the current one
+                        await client.sendMessage(msg.from,'🖥️ Device is connected');
+                    } else if (msg.body === '!ping') {
                         // Send a new message as a reply to the current one
                         await msg.reply('pong');
-                
-                    } else if (msg.body === '!ping') {
-                        // Send a new message to the same chat
-                        await client.sendMessage(msg.from, 'pong');
-                
-                    } 
+                    } else{
+                        // function removeString(inputString) { 
+                        //     return inputString.replace(/[^0-9]/g, ''); 
+                        // }        
+                        // const chat_Model = require('./src/models/chat_model');
+                        // const chatModel = new chat_Model();
+                        // var number = removeString(msg.to);
+                        // console.log(number, msg.body);
+                        // chatModel.callChatProcedure([number,msg.body]).then((result) => {
+                        //     console.log('DEVICE SP: ', JSON.stringify(result[0]));
+                        //     var textList = [];
+                        //     var textResult = '';
+                        //     result.forEach(async (v,i) => {
+                        //         textList.push({text:v['chat_text']});
+                        //         textResult = v['chat_text'];
+                        //     })              
+                        //     if(textResult.length > 0){       
+                        //         client.sendMessage(msg.from, textResult);
+                        //         console.log(textResult);  
+                        //     }else{
+                        //         console.log('Autoreply not send');
+                        //     }                       
+                        //     // returnJson(res, 1, 'Success', result[0]);           
+                        // }).catch((error) => {
+                        //     console.error('Error retrieving device:', error.sqlMessage);
+                        //     // returnJson(res, 0, error.sqlMessage);                                             
+                        // });   
+                        console.log('Message from '+msg.from);    
+                    }    
                 });
                 client.on('disconnected', (reason) => {
                     console.log('Client was logged out', reason);
-                });
+                });                
                 break;
             case "send-message": //wa
+                // let client = new Client({
+                //     authStrategy: new LocalAuth({
+                //         clientId: 'session-'+sender,
+                //         dataPath: './.wwebjs_auth',
+                //         // store:storedd,
+                //         backupSyncIntervalMs: 600000
+                //     }),
+                //     // proxyAuthentication: { username: 'username', password: 'password' },
+                //     puppeteer: { 
+                //         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
+                //         args: ['--no-sandbox','--disable-setuid-sandbox','--disable-extensions','--disable-dev-shm-usage','--disable-accelerated-2d-canvas',
+                //         '--no-first-run','--no-zygote',
+                //         '--single-process', // <- this one doesn't works in Windows
+                //         '--disable-gpu'],
+                //         headless: true
+                //     },
+                //     session: './wwebjs_auth/session-session-'+sender
+                // });
+                // client.initialize();
                 // const client = new Client({
                 //     authStrategy: new LocalAuth(),
                 //     // proxyAuthentication: { username: 'username', password: 'password' },
@@ -349,12 +417,13 @@ app.get('/devices', (req, res) => {
                     console.log("Recipient: "+recipient);
                     console.log("Node: "+content);
                     // client.sendMessage(recipient+'@c.us', content)
-                    var rc = recipient+"@c.us";
+                    // var rc = recipient+"@c.us";
+                    var rc = phoneNumberFormatter(recipient); // 6281225518118@c.us 
 
                     // if(attach.length > 0){
                         // content = MessageMedia.fromUrl(attach);
                     // }
-                    // console.log(attach.length);
+                    console.log(client);
                     client.sendMessage(rc, content)
                     .then(response => {
                         res.status(200).json({
@@ -371,6 +440,7 @@ app.get('/devices', (req, res) => {
                             result: error,
                         });
                         console.log('Not Sent to : '+recipient);
+                        console.log(error);
                     });   
                 // }else{
                 //     res.status(200).json({
