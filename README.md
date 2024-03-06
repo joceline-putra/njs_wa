@@ -17,3 +17,6 @@ pm2 list
 
 #Port Used on VPS
 lsof -i:3030
+
+#Port Kill
+kill -9 <PIDNUMBER>
