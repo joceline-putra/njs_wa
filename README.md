@@ -20,3 +20,13 @@ lsof -i:3030
 
 #Port Kill
 kill -9 <PIDNUMBER>
+
+
+#env
+APP_PORT=3030
+
+DB_HOST=127.0.0.1
+DB_USER=root
+DB_PASSWORD=@Master2023
+DB_DATABASE=whatsapp
+DB_PORT=2233
